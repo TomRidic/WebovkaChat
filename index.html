@@ -1,29 +1,6 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webovka Chat 🤫</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1a1a">
-</head>
-<body>
-    <div class="chat-container">
-        <div id="messages" class="messages-box">
-            <div class="msg"><b>Systém:</b> Připojuji k databázi... 🚀</div>
-        </div>
-        <div class="input-box">
-            <input type="text" id="username" placeholder="Jméno..." style="width: 25%;">
-            <input type="text" id="messageInput" placeholder="Napiš zprávu...">
-            <button id="sendBtn">Odeslat</button>
-        </div>
-    </div>
-
-    <!-- Firebase SDK skripty -->
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, set, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
@@ -42,7 +19,8 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Tady explicitně předáváme URL tvé databáze z konzole:
+        const db = getDatabase(app, "https://webovkachat-default-rtdb.firebaseio.com/");
 
         document.addEventListener('DOMContentLoaded', function() {
             const messageInput = document.getElementById('messageInput');
@@ -50,7 +28,6 @@
             const sendBtn = document.getElementById('sendBtn');
             const messagesBox = document.getElementById('messages');
 
-            // Vymažeme startovní zprávu, ať se tam pak nepletou
             messagesBox.innerHTML = "";
 
             function sendMessage() {
@@ -59,7 +36,6 @@
 
                 if (text === "") return;
 
-                // Odeslání do Firebase databáze pod větev "messages"
                 const messagesRef = ref(db, 'messages');
                 push(messagesRef, {
                     username: user,
@@ -81,7 +57,6 @@
                 return text.replace(/[&<>"']/g, function(m) { return map[m]; });
             }
 
-            // Naslouchání novým zprávám v reálném čase od kohokoliv
             const messagesRef = ref(db, 'messages');
             onChildAdded(messagesRef, (snapshot) => {
                 const data = snapshot.val();
@@ -102,5 +77,3 @@
             });
         });
     </script>
-</body>
-</html>
