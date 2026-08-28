@@ -5,43 +5,50 @@
                 .catch((err) => console.log("Chyba SW: ", err));
         }
 
-        const messageInput = document.getElementById('messageInput');
-        const usernameInput = document.getElementById('username');
-        const sendBtn = document.getElementById('sendBtn');
-        const messagesBox = document.getElementById('messages');
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('messageInput');
+            const usernameInput = document.getElementById('username');
+            const sendBtn = document.getElementById('sendBtn');
+            const messagesBox = document.getElementById('messages');
 
-        function sendMessage() {
-            const text = messageInput.value.trim();
-            const user = usernameInput.value.trim() || "Anonym";
-
-            if (text === "") return;
-
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'msg';
-            msgDiv.innerHTML = `<b>${user}:</b> ${escapeHtml(text)}`;
-            
-            messagesBox.appendChild(msgDiv);
-            messagesBox.scrollTop = messagesBox.scrollHeight;
-            
-            messageInput.value = "";
-        }
-
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-
-        messageInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
+            if (!sendBtn || !messageInput) {
+                console.error("Chybí tlačítko nebo vstupní políčko v HTML!");
+                return;
             }
+
+            function sendMessage() {
+                const text = messageInput.value.trim();
+                const user = usernameInput ? usernameInput.value.trim() || "Anonym" : "Anonym";
+
+                if (text === "") return;
+
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'msg';
+                msgDiv.innerHTML = `<b>${user}:</b> ${escapeHtml(text)}`;
+                
+                messagesBox.appendChild(msgDiv);
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+                
+                messageInput.value = "";
+            }
+
+            function escapeHtml(text) {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+
+            messageInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    sendMessage();
+                }
+            });
         });
     </script>
