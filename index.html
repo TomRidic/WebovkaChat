@@ -11,7 +11,7 @@
 <body>
     <div class="chat-container">
         <div id="messages" class="messages-box">
-            <div class="msg"><b>Systém:</b> Webovka Chat je připravena! 🚀</div>
+            <div class="msg"><b>Systém:</b> Připojuji k databázi... 🚀</div>
         </div>
         <div class="input-box">
             <input type="text" id="username" placeholder="Jméno..." style="width: 25%;">
@@ -20,12 +20,29 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK skripty -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, set, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
                 .then(() => console.log("Service Worker běží!"))
                 .catch((err) => console.log("Chyba SW: ", err));
         }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtVm7h3Sb_K-Q72dna57HBmBJON3r91yg",
+            authDomain: "webovkachat.firebaseapp.com",
+            projectId: "webovkachat",
+            storageBucket: "webovkachat.firebasestorage.app",
+            messagingSenderId: "976579792186",
+            appId: "1:976579792186:web:57061eb9528b263d489403",
+            measurementId: "G-5ZJ0NF52YM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
         document.addEventListener('DOMContentLoaded', function() {
             const messageInput = document.getElementById('messageInput');
@@ -33,18 +50,22 @@
             const sendBtn = document.getElementById('sendBtn');
             const messagesBox = document.getElementById('messages');
 
+            // Vymažeme startovní zprávu, ať se tam pak nepletou
+            messagesBox.innerHTML = "";
+
             function sendMessage() {
                 const text = messageInput.value.trim();
                 const user = usernameInput ? usernameInput.value.trim() || "Anonym" : "Anonym";
 
                 if (text === "") return;
 
-                const msgDiv = document.createElement('div');
-                msgDiv.className = 'msg';
-                msgDiv.innerHTML = `<b>${user}:</b> ${escapeHtml(text)}`;
-                
-                messagesBox.appendChild(msgDiv);
-                messagesBox.scrollTop = messagesBox.scrollHeight;
+                // Odeslání do Firebase databáze pod větev "messages"
+                const messagesRef = ref(db, 'messages');
+                push(messagesRef, {
+                    username: user,
+                    text: text,
+                    timestamp: Date.now()
+                });
                 
                 messageInput.value = "";
             }
@@ -59,6 +80,18 @@
                 };
                 return text.replace(/[&<>"']/g, function(m) { return map[m]; });
             }
+
+            // Naslouchání novým zprávám v reálném čase od kohokoliv
+            const messagesRef = ref(db, 'messages');
+            onChildAdded(messagesRef, (snapshot) => {
+                const data = snapshot.val();
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'msg';
+                msgDiv.innerHTML = `<b>${escapeHtml(data.username)}:</b> ${escapeHtml(data.text)}`;
+                
+                messagesBox.appendChild(msgDiv);
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+            });
 
             sendBtn.addEventListener('click', sendMessage);
 
